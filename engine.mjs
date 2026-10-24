@@ -1,7 +1,6 @@
 // 엔진 선택 근거: engine-check/REPORT.md
-import { createRequire } from 'module';
 import { calculateFourPillars } from 'manseryeok';
-const KLC = createRequire(import.meta.url)('korean-lunar-calendar');
+import KLC from 'korean-lunar-calendar';
 
 const ELEMENT = { 갑: '목', 을: '목', 병: '화', 정: '화', 무: '토', 기: '토', 경: '금', 신: '금', 임: '수', 계: '수' };
 const NEXT = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }; // 상생

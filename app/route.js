@@ -1,9 +1,7 @@
-import http from 'http';
-import { readFileSync } from 'fs';
-import { saju, todayPillar, relation } from './engine.mjs';
+import { saju, todayPillar, relation } from '../engine.mjs';
 
-const PORT = process.env.PORT || 3000;
-const LOGO = readFileSync(new URL('./assets/wave-on.png', import.meta.url));
+export const dynamic = 'force-dynamic'; // 오늘 일진이 날마다 바뀜
+
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const TITLE = { '생을 받음': '도움 받는 날', 비화: '나랑 닮은 날', '내가 극함': '내가 이끄는 날', '생을 줌': '힘을 나눠 주는 날', '극을 받음': '쉬어 가는 날' };
 const KO = { 목: '나무', 화: '불', 토: '흙', 금: '쇠', 수: '물' };
@@ -133,9 +131,6 @@ ${result(q)}
 </main></html>`;
 }
 
-http.createServer((req, res) => {
-  const url = new URL(req.url, 'http://x');
-  if (url.pathname === '/logo.png') return res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'max-age=86400' }).end(LOGO);
-  if (url.pathname !== '/') return res.writeHead(404).end();
-  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(render(url.searchParams));
-}).listen(PORT, () => console.log(`http://localhost:${PORT}`));
+export function GET(req) {
+  return new Response(render(new URL(req.url).searchParams), { headers: { 'content-type': 'text/html; charset=utf-8' } });
+}
