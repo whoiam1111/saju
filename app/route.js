@@ -1,4 +1,4 @@
-import { saju, todayPillar, relation } from '../engine.mjs';
+import { saju, todayPillar, relation, currentLuck } from '../engine.mjs';
 
 export const dynamic = 'force-dynamic'; // 오늘 일진이 날마다 바뀜
 
@@ -30,15 +30,35 @@ const GUIDE = `<details class="guide"><summary>🤔 이게 다 무슨 뜻이야?
 <p>🌳→🔥→🌻→💎→💧→🌳 순서로 앞의 것이 뒤의 것을 <b>키워 줘요</b> (나무는 불을 피우고, 불은 재가 되어 흙이 돼요).<br>
 🌳→🌻→💧→🔥→💎→🌳 순서로 앞의 것이 뒤의 것을 <b>눌러요</b> (나무는 흙을 파고들고, 흙은 물을 막아요).</p>
 <p><b>확정 불가</b>는 절기(계절이 바뀌는 날)에 태어났다는 뜻이에요. 태어난 시간에 따라 해와 달 글자가 달라져서 정하지 않았어요. 오늘 운세는 일주만 쓰기 때문에 결과에는 영향이 없어요.</p>
+<p><b>10년 운(대운)</b>은 10년마다 바뀌는 큰 흐름이에요. 성별과 태어난 해에 따라 운이 앞으로 흐를지 거꾸로 흐를지가 정해져서 성별이 꼭 필요해요.</p>
+<p><b>시주</b>는 태어난 시간으로 정하는 네 번째 기둥이에요. 시간을 넣으면 1954–61년 표준시와 서머타임 시기도 자동으로 맞춰서 계산해요.</p>
 </details>`;
 
-const chip =(label, v) => `<div class="chip"><small>${label}</small><b>${v ?? '?'}</b>${v ? '' : '<em>확정 불가</em>'}</div>`;
+const chip = (label, v, miss = '확정 불가') => `<div class="chip"><small>${label}</small><b>${v ?? '?'}</b>${v ? '' : `<em>${miss}</em>`}</div>`;
+const PERIOD = {
+  '생을 받음': '주변의 도움과 기회가 많이 들어오는 시기예요.',
+  비화: '나다운 모습으로 꾸준히 걸어가는 시기예요.',
+  '내가 극함': '내가 앞장서서 성과를 만들어 가는 시기예요.',
+  '생을 줌': '재능을 펼치고 나누느라 바쁜 시기예요.',
+  '극을 받음': '책임과 부담이 커지지만 그만큼 단단해지는 시기예요.',
+};
+
+function luckBox(r) {
+  if (!r.luck) return `<div class="explain"><p><b>🌊 지금 나의 10년 운</b><br>절기에 태어나 태어난 시간을 알아야 정할 수 있어요. 시간을 넣어 보세요!</p></div>`;
+  const { age, now, next } = currentLuck(r.luck, r.solar);
+  const after = next ? ` 다음 10년 운은 ${next.age}살부터 '${next.korean}'이에요.` : '';
+  const guess = r.hour ? '' : '<br><small>태어난 시간을 모르면 시작 나이가 1살쯤 다를 수 있어요.</small>';
+  if (!now) return `<div class="explain"><p><b>🌊 나의 10년 운</b><br>지금 만 ${age}살, 첫 10년 운은 ${next.age}살부터 시작해요.${guess}</p></div>`;
+  const rl = relation(r.day, now.korean), [icon] = EL[rl.it];
+  return `<div class="explain"><p><b>🌊 지금 나의 10년 운: ${TITLE[rl.kind].replace('날', '시기')}</b><br>
+만 ${now.age}살부터 10년 동안 '${now.korean}', ${icon} ${KO[rl.it]} 기운이 흘러요. ${PERIOD[rl.kind]}${after}${guess}</p></div>`;
+}
 
 function result(q) {
   if (!q.has('date')) return '';
   try {
     const [year, month, day] = q.get('date').split('-');
-    const r = saju({ year, month, day, lunar: q.get('cal') === 'lunar', leap: q.has('leap') });
+    const r = saju({ year, month, day, lunar: q.get('cal') === 'lunar', leap: q.has('leap'), gender: q.get('gender'), time: q.get('time') ?? '' });
     const today = todayPillar(), rel = relation(r.day, today), rank = RANK[rel.kind];
     const [meIcon] = EL[rel.me], [itIcon] = EL[rel.it], [luckyIcon, lucky, luckyHex] = EL[rel.lucky];
     return `<section class="card result r${rank}">
@@ -50,11 +70,12 @@ function result(q) {
     <p><b>📖 나는 어떤 사람?</b><br>일주 '${r.day}'의 첫 글자 '${r.day[0]}'은(는) ${meIcon} ${KO[rel.me]}(${rel.me}) 기운이에요. ${ME[rel.me]}</p>
     <p><b>📅 오늘은 왜 ${rank}위?</b><br>오늘 일진 '${today}'의 첫 글자 '${today[0]}'은(는) ${itIcon} ${KO[rel.it]}(${rel.it}) 기운이에요. ${WHY[rel.kind](KO[rel.me], KO[rel.it])}</p>
   </div>
-  <div class="chips">${chip('연주', r.year)}${chip('월주', r.month)}${chip('일주', r.day)}${chip('오늘 일진', today)}</div>
+  <div class="chips">${chip('연주', r.year)}${chip('월주', r.month)}${chip('일주', r.day)}${chip('시주', r.hour, '시간 모름')}</div>
+  ${luckBox(r)}
   ${GUIDE}
   <p class="lucky">🍀 행운의 색 <b style="background:${luckyHex}">${lucky}</b></p>
   <p class="note">${luckyIcon} ${KO[rel.lucky]} 기운이 나와 오늘 사이를 이어 줘요</p>
-  <p class="note">양력 ${r.solar} 기준 · 재미로 보는 운세예요</p>
+  <p class="note">양력 ${r.solar} 기준 · 오늘 일진 ${today} · 재미로 보는 운세예요</p>
 </section>`;
   } catch (e) {
     return `<section class="card error" role="alert">😵 ${esc(e.message)}</section>`;
@@ -80,12 +101,13 @@ h1{text-align:center;font-size:2.4rem;margin:0 0 4px;letter-spacing:1px;
 .sub{text-align:center;margin:0 0 20px;font-size:1.05rem}
 .card{background:#fff;border:3px solid var(--ink);border-radius:28px;padding:22px;box-shadow:6px 6px 0 var(--ink);margin-bottom:22px}
 label{font-size:1.1rem}
-input[type=date]{width:100%;margin-top:6px;padding:12px 14px;font:inherit;font-size:1.1rem;color:inherit;border:3px solid var(--ink);border-radius:16px;background:#fffbe6}
+input[type=date],input[type=time]{width:100%;margin-top:6px;padding:12px 14px;font:inherit;font-size:1.1rem;color:inherit;border:3px solid var(--ink);border-radius:16px;background:#fffbe6}
 .seg{display:flex;gap:8px;margin:14px 0}
 .seg label{flex:1;text-align:center;padding:10px 0;border:3px solid var(--ink);border-radius:999px;cursor:pointer;background:#fff}
 .seg input{position:absolute;opacity:0}
 .seg label:has(input:checked){background:var(--yellow)}
 .seg label:has(input:focus-visible){outline:3px solid var(--sky);outline-offset:2px}
+form button{margin-top:16px}
 button{width:100%;padding:14px;font:inherit;font-size:1.3rem;color:#fff;background:var(--pink);border:3px solid var(--ink);border-radius:999px;box-shadow:0 5px 0 var(--ink);cursor:pointer}
 button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
 .result{text-align:center;position:relative;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
@@ -117,7 +139,7 @@ h2{margin:6px 0;font-size:1.9rem}
 <main>
 <header class="brand"><img src="/logo.png" alt="WAVE ON" width="578" height="106"></header>
 <h1>✨ 오늘의 운세 ✨</h1>
-<p class="sub">생일만 넣으면 오늘 나의 순위를 알려줘요!</p>
+<p class="sub">생일과 성별만 넣으면 오늘 나의 순위를 알려줘요!</p>
 ${result(q)}
 <form class="card">
   <label>🎂 생일<input name="date" type="date" required min="1900-01-01" max="2050-12-31" value="${esc(q.get('date') ?? '')}"></label>
@@ -126,6 +148,11 @@ ${result(q)}
     <label><input type="radio" name="cal" value="lunar" ${lunar ? 'checked' : ''}>🌙 음력</label>
     <label><input type="checkbox" name="leap" ${q.has('leap') ? 'checked' : ''}>윤달</label>
   </div>
+  <div class="seg" role="radiogroup" aria-label="성별">
+    <label><input type="radio" name="gender" value="female" required ${q.get('gender') === 'female' ? 'checked' : ''}>👩 여자</label>
+    <label><input type="radio" name="gender" value="male" ${q.get('gender') === 'male' ? 'checked' : ''}>👨 남자</label>
+  </div>
+  <label>⏰ 태어난 시간 <small>(몰라도 괜찮아요)</small><input name="time" type="time" value="${esc(q.get('time') ?? '')}"></label>
   <button>운세 보기 🔮</button>
 </form>
 </main></html>`;
