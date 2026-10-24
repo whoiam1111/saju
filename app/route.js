@@ -50,7 +50,7 @@ function luckBox(r) {
   const guess = r.hour ? '' : '<br><small>태어난 시간을 모르면 시작 나이가 1살쯤 다를 수 있어요.</small>';
   if (!now) return `<div class="explain"><p><b>🌊 나의 10년 운</b><br>지금 만 ${age}살, 첫 10년 운은 ${next.age}살부터 시작해요.${guess}</p></div>`;
   const rl = relation(r.day, now.korean), [icon] = EL[rl.it];
-  return `<div class="explain"><p><b>🌊 지금 나의 10년 운: ${TITLE[rl.kind].replace('날', '시기')}</b><br>
+  return `<div class="explain"><p><b>🌊 지금 나의 10년 운</b><br><b class="period">${TITLE[rl.kind].replace('날', '시기')}</b><br>
 만 ${now.age}살부터 10년 동안 '${now.korean}', ${icon} ${KO[rl.it]} 기운이 흘러요. ${PERIOD[rl.kind]}${after}${guess}</p></div>`;
 }
 
@@ -84,33 +84,35 @@ function result(q) {
 
 function render(q) {
   const lunar = q.get('cal') === 'lunar';
-  return `<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  return `<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#fff3a8">
 <title>오늘의 사주 운세</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 <style>
 :root{--ink:#3a2e5c;--pink:#ff7eb6;--yellow:#ffe066;--sky:#7ed6ff}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:Jua,system-ui,sans-serif;color:var(--ink);
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;min-height:100%;background:#fff3a8}
+body{margin:0;min-height:100vh;min-height:100dvh;font-family:Jua,system-ui,sans-serif;color:var(--ink);
   background:radial-gradient(circle at 20% 10%,#fff6 0 8%,transparent 9%),radial-gradient(circle at 85% 25%,#fff5 0 5%,transparent 6%),
-  linear-gradient(160deg,#fff3a8 0%,#ffc2dd 45%,#a8e4ff 100%) fixed}
-main{max-width:460px;margin:0 auto;padding:28px 16px 48px}
+  linear-gradient(160deg,#fff3a8 0%,#ffc2dd 45%,#a8e4ff 100%)}
+main{max-width:460px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 .brand{display:flex;justify-content:center;margin:0 0 18px}
 .brand img{height:22px;width:auto;padding:9px 18px;box-sizing:content-box;background:var(--ink);border-radius:999px;box-shadow:3px 3px 0 var(--pink)}
-h1{text-align:center;font-size:2.4rem;margin:0 0 4px;letter-spacing:1px;
+h1{text-align:center;font-size:clamp(1.8rem,9vw,2.4rem);white-space:nowrap;margin:0 0 4px;letter-spacing:1px;
   color:#fff;-webkit-text-stroke:2px var(--ink);paint-order:stroke;text-shadow:4px 4px 0 var(--pink)}
-.sub{text-align:center;margin:0 0 20px;font-size:1.05rem}
-.card{background:#fff;border:3px solid var(--ink);border-radius:28px;padding:22px;box-shadow:6px 6px 0 var(--ink);margin-bottom:22px}
+.sub{text-align:center;margin:0 0 20px;font-size:1.05rem;text-wrap:balance}
+.card{background:#fff;border:3px solid var(--ink);border-radius:28px;padding:clamp(16px,5vw,22px);box-shadow:6px 6px 0 var(--ink);margin-bottom:32px}
 label{font-size:1.1rem}
-input[type=date],input[type=time]{width:100%;margin-top:6px;padding:12px 14px;font:inherit;font-size:1.1rem;color:inherit;border:3px solid var(--ink);border-radius:16px;background:#fffbe6}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;display:block;min-height:52px;width:100%;margin-top:6px;padding:12px 14px;font:inherit;font-size:1.1rem;color:inherit;border:3px solid var(--ink);border-radius:16px;background:#fffbe6}
+input::-webkit-date-and-time-value{text-align:left}
 .seg{display:flex;gap:8px;margin:14px 0}
-.seg label{flex:1;text-align:center;padding:10px 0;border:3px solid var(--ink);border-radius:999px;cursor:pointer;background:#fff}
+.seg label{position:relative;flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;border:3px solid var(--ink);border-radius:999px;cursor:pointer;background:#fff}
 .seg input{position:absolute;opacity:0}
 .seg label:has(input:checked){background:var(--yellow)}
 .seg label:has(input:focus-visible){outline:3px solid var(--sky);outline-offset:2px}
 form button{margin-top:16px}
-button{width:100%;padding:14px;font:inherit;font-size:1.3rem;color:#fff;background:var(--pink);border:3px solid var(--ink);border-radius:999px;box-shadow:0 5px 0 var(--ink);cursor:pointer}
+button{touch-action:manipulation;width:100%;min-height:56px;padding:14px;font:inherit;font-size:1.3rem;color:#fff;background:var(--pink);border:3px solid var(--ink);border-radius:999px;box-shadow:0 5px 0 var(--ink);cursor:pointer}
 button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
-.result{text-align:center;position:relative;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+.result{margin-top:92px;text-align:center;position:relative;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
 @keyframes pop{from{transform:scale(.6);opacity:0}}
 @media (prefers-reduced-motion:reduce){.result{animation:none}}
 .badge{width:110px;height:110px;margin:-70px auto 8px;border-radius:50%;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:var(--bg);box-shadow:4px 4px 0 var(--ink)}
@@ -127,10 +129,12 @@ h2{margin:6px 0;font-size:1.9rem}
 .chips{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .chip{background:#fffbe6;border:2px dashed var(--ink);border-radius:16px;padding:10px 6px;display:flex;flex-direction:column}
 .chip b{font-size:1.5rem}
+@media (max-width:360px){.vs{font-size:2rem;gap:10px}.chip b{font-size:1.3rem}.badge{width:96px;height:96px}.badge span{font-size:3rem}}
 .chip em{font-style:normal;font-size:.8rem;color:#8a7fa8}
 .lucky{margin:18px 0 6px;font-size:1.15rem}
 .lucky b{color:#fff;padding:3px 12px;border-radius:999px;border:2px solid var(--ink);-webkit-text-stroke:.5px var(--ink)}
 .note{font-size:.85rem;color:#6b6189;margin:8px 0 0}
+.period{font-size:1.2rem;color:#d6457f}
 .explain{text-align:left;background:#fff5fa;border-radius:18px;padding:4px 16px;margin-bottom:16px;line-height:1.6}
 .guide{text-align:left;margin-top:16px;background:#eef9ff;border-radius:18px;padding:12px 16px;line-height:1.6}
 .guide summary{cursor:pointer;font-size:1.1rem}
