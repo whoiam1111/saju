@@ -1,0 +1,13 @@
+{
+  "name": "saju-fortune",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "korean-lunar-calendar": "^0.4.0",
+    "manseryeok": "^2.0.0"
+  }
+}
